@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Reflection;
 using System.Threading.Tasks;
 using StardewModdingAPI.Events;
 using StardewValley;
@@ -37,6 +38,44 @@ namespace MedTalk
             }
         }
 
+        private Dialogue CreateDialogue(string text, NPC npc)
+        {
+            try
+            {
+                ConstructorInfo[] constructors = typeof(Dialogue).GetConstructors();
+                
+                foreach (var ctor in constructors)
+                {
+                    var parameters = ctor.GetParameters();
+                    
+                    if (parameters.Length == 2)
+                    {
+                        if (parameters[0].ParameterType == typeof(string) && 
+                            parameters[1].ParameterType == typeof(NPC))
+                        {
+                            return (Dialogue)ctor.Invoke(new object[] { text, npc });
+                        }
+                        else if (parameters[0].ParameterType == typeof(NPC) && 
+                                 parameters[1].ParameterType == typeof(string))
+                        {
+                            return (Dialogue)ctor.Invoke(new object[] { npc, text });
+                        }
+                    }
+                    else if (parameters.Length == 1 && parameters[0].ParameterType == typeof(string))
+                    {
+                        return (Dialogue)ctor.Invoke(new object[] { text });
+                    }
+                }
+                
+                return (Dialogue)Activator.CreateInstance(typeof(Dialogue), text);
+            }
+            catch (Exception ex)
+            {
+                Log.Error($"CreateDialogue error: {ex.Message}");
+                return null;
+            }
+        }
+
         private async Task PerformGeneration()
         {
             string dialogueText = "...";
@@ -67,8 +106,12 @@ namespace MedTalk
             {
                 if (_speakingNpc != null && !string.IsNullOrEmpty(dialogueText))
                 {
-                    _speakingNpc.CurrentDialogue.Push(new Dialogue(dialogueText, _speakingNpc));
-                    Game1.drawDialogue(_speakingNpc);
+                    var dialogue = CreateDialogue(dialogueText, _speakingNpc);
+                    if (dialogue != null)
+                    {
+                        _speakingNpc.CurrentDialogue.Push(dialogue);
+                        Game1.drawDialogue(_speakingNpc);
+                    }
                 }
                 Reset();
             }
