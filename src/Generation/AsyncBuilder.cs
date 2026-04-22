@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
-using System.Reflection;
 using System.Linq;
+using System.Reflection;
 using System.Threading.Tasks;
 using StardewModdingAPI.Events;
 using StardewValley;
@@ -10,9 +10,9 @@ namespace MedTalk
 {
     public class AsyncBuilder
     {
+        // ... (sabit kodlar aynen kalacak) ...
         private static AsyncBuilder _instance = new AsyncBuilder();
         public static AsyncBuilder Instance => _instance;
-
         private bool _awaitingGeneration = false;
         private GenerationType _awaitedType = GenerationType.None;
         private NPC _speakingNpc = null;
@@ -21,7 +21,6 @@ namespace MedTalk
         private List<ConversationElement> _currentConversation = null;
         private StardewValley.Object _currentGift = null;
         private int _currentTaste = 0;
-
         public bool AwaitingGeneration => _awaitingGeneration;
         public NPC SpeakingNpc => _speakingNpc;
 
@@ -39,6 +38,7 @@ namespace MedTalk
             }
         }
 
+        // YENİ: Mobil için özel Constructor
         private Dialogue CreateDialogue(string text, NPC npc)
         {
             try
@@ -53,36 +53,49 @@ namespace MedTalk
                     var paramTypes = string.Join(", ", parameters.Select(p => p.ParameterType.Name));
                     Log.Info($"  Constructor with params: {paramTypes}");
                     
-                    if (parameters.Length == 2)
+                    // --- MOBİL İÇİN DOĞRU CONSTRUCTOR ---
+                    // Mobil oyun (NPC, String, String) yapısını bekliyor.
+                    if (parameters.Length == 3 &&
+                        parameters[0].ParameterType == typeof(NPC) &&
+                        parameters[1].ParameterType == typeof(string) &&
+                        parameters[2].ParameterType == typeof(string))
                     {
-                        if (parameters[0].ParameterType == typeof(string) && 
-                            parameters[1].ParameterType == typeof(NPC))
-                        {
-                            return (Dialogue)ctor.Invoke(new object[] { text, npc });
-                        }
-                        else if (parameters[0].ParameterType == typeof(NPC) && 
-                                 parameters[1].ParameterType == typeof(string))
-                        {
-                            return (Dialogue)ctor.Invoke(new object[] { npc, text });
-                        }
+                        Log.Info("Using mobile constructor: (NPC, String, String)");
+                        return (Dialogue)ctor.Invoke(new object[] { npc, text, "" });
                     }
-                    else if (parameters.Length == 1 && parameters[0].ParameterType == typeof(string))
+                    
+                    // Alternatif mobil constructor (NPC, String, Boolean)
+                    if (parameters.Length == 3 &&
+                        parameters[0].ParameterType == typeof(NPC) &&
+                        parameters[1].ParameterType == typeof(string) &&
+                        parameters[2].ParameterType == typeof(bool))
                     {
+                        Log.Info("Using mobile constructor: (NPC, String, Boolean)");
+                        return (Dialogue)ctor.Invoke(new object[] { npc, text, false });
+                    }
+                    
+                    // --- PC İÇİN CONSTRUCTORLAR (Yedek) ---
+                    if (parameters.Length == 2 &&
+                        parameters[0].ParameterType == typeof(string) &&
+                        parameters[1].ParameterType == typeof(NPC))
+                    {
+                        Log.Info("Using PC constructor: (String, NPC)");
+                        return (Dialogue)ctor.Invoke(new object[] { text, npc });
+                    }
+                    
+                    if (parameters.Length == 2 &&
+                        parameters[0].ParameterType == typeof(NPC) &&
+                        parameters[1].ParameterType == typeof(string))
+                    {
+                        Log.Info("Using PC constructor: (NPC, String)");
+                        return (Dialogue)ctor.Invoke(new object[] { npc, text });
+                    }
+                    
+                    // Tek parametreli constructor
+                    if (parameters.Length == 1 && parameters[0].ParameterType == typeof(string))
+                    {
+                        Log.Info("Using fallback constructor: (String)");
                         return (Dialogue)ctor.Invoke(new object[] { text });
-                    }
-                }
-                
-                if (constructors.Length > 0)
-                {
-                    var firstCtor = constructors[0];
-                    var parameters = firstCtor.GetParameters();
-                    if (parameters.Length == 2)
-                    {
-                        return (Dialogue)firstCtor.Invoke(new object[] { text, npc });
-                    }
-                    else if (parameters.Length == 1 && parameters[0].ParameterType == typeof(string))
-                    {
-                        return (Dialogue)firstCtor.Invoke(new object[] { text });
                     }
                 }
                 
