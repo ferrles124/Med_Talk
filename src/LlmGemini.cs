@@ -12,7 +12,8 @@ namespace MedTalk
         public LlmGemini(string apiKey, string modelName, string url)
         {
             _apiKey = apiKey;
-            _modelName = string.IsNullOrEmpty(modelName) ? "gemini-1.5-flash" : modelName;
+            // YENİ: Artık doğru ve güncel model adını kullanıyoruz
+            _modelName = string.IsNullOrEmpty(modelName) ? "gemini-2.5-flash" : modelName;
             _url = $"https://generativelanguage.googleapis.com/v1beta/models/{_modelName}:generateContent";
         }
 
@@ -31,7 +32,6 @@ namespace MedTalk
             {
                 using var client = new HttpClient { Timeout = TimeSpan.FromSeconds(20) };
                 var requestUrl = $"{_url}?key={_apiKey}";
-                Log.Info($"Gemini: Request URL {requestUrl}");
                 
                 var request = new HttpRequestMessage(HttpMethod.Post, requestUrl);
                 request.Content = new StringContent(inputString, Encoding.UTF8, "application/json");
@@ -42,13 +42,18 @@ namespace MedTalk
                 
                 if (!response.IsSuccessStatusCode)
                 {
-                    Log.Error($"Gemini API Error: {response.StatusCode} - {responseString}");
+                    // YENİ: Daha anlaşılır hata mesajları
+                    if ((int)response.StatusCode == 404)
+                        Log.Error($"Gemini API Error: Model '{_modelName}' bulunamadı. Lütfen config.json'daki 'ModelName' değerini 'gemini-2.5-flash' veya 'gemini-2.0-flash' olarak güncelleyin.");
+                    else if ((int)response.StatusCode == 401)
+                        Log.Error($"Gemini API Error: API Anahtarı geçersiz. Lütfen config.json'daki 'ApiKey' değerini kontrol edin.");
+                    else
+                        Log.Error($"Gemini API Error: {response.StatusCode} - {responseString}");
                     return "...";
                 }
                 
                 var responseJson = JObject.Parse(responseString);
                 var text = responseJson["candidates"]?[0]?["content"]?["parts"]?[0]?["text"]?.ToString();
-                Log.Info($"Gemini: Response text length {text?.Length ?? 0}");
                 return string.IsNullOrEmpty(text) ? "..." : text;
             }
             catch (Exception ex)
