@@ -1,0 +1,10 @@
+{
+  "Name": "MedTalk",
+  "Author": "ferrles124",
+  "Version": "1.0.0",
+  "Description": "AI-powered NPC dialogue for mobile",
+  "UniqueID": "ferrles124.MedTalk",
+  "EntryDll": "MedTalk.dll",
+  "MinimumApiVersion": "4.0.0",
+  "UpdateKeys": []
+}
