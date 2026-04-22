@@ -42,11 +42,15 @@ namespace MedTalk
         {
             try
             {
-                ConstructorInfo[] constructors = typeof(Dialogue).GetConstructors();
+                var constructors = typeof(Dialogue).GetConstructors(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+                
+                Log.Info($"Found {constructors.Length} constructors for Dialogue");
                 
                 foreach (var ctor in constructors)
                 {
                     var parameters = ctor.GetParameters();
+                    var paramTypes = string.Join(", ", parameters.Select(p => p.ParameterType.Name));
+                    Log.Info($"  Constructor with params: {paramTypes}");
                     
                     if (parameters.Length == 2)
                     {
@@ -67,7 +71,22 @@ namespace MedTalk
                     }
                 }
                 
-                return (Dialogue)Activator.CreateInstance(typeof(Dialogue), text);
+                if (constructors.Length > 0)
+                {
+                    var firstCtor = constructors[0];
+                    var parameters = firstCtor.GetParameters();
+                    if (parameters.Length == 2)
+                    {
+                        return (Dialogue)firstCtor.Invoke(new object[] { text, npc });
+                    }
+                    else if (parameters.Length == 1 && parameters[0].ParameterType == typeof(string))
+                    {
+                        return (Dialogue)firstCtor.Invoke(new object[] { text });
+                    }
+                }
+                
+                Log.Error($"No suitable constructor found for Dialogue");
+                return null;
             }
             catch (Exception ex)
             {
