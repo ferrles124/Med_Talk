@@ -1,0 +1,43 @@
+name: Build MedTalk
+
+on:
+  push:
+    branches: [ master, main ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '8.0.x'
+
+    - name: Setup game folder
+      run: |
+        mkdir -p "$HOME/stardew"
+        curl -L "https://drive.google.com/uc?export=download&id=12tXWHUfUPeOtW-gaL2HepY_44SWTAjWN&confirm=t" -o "$HOME/stardew/Stardew Valley.dll"
+        curl -L "https://drive.google.com/uc?export=download&id=1mdSKSSeWkdeQXtRJNp7944kM93jv-mIp&confirm=t" -o "$HOME/stardew/StardewValley.GameData.dll"
+        curl -L "https://drive.google.com/uc?export=download&id=1-tx2TMjISZsa223YF2DvrJeRLID02-Su&confirm=t" -o "$HOME/stardew/StardewModdingAPI.dll"
+        curl -L "https://drive.google.com/uc?export=download&id=135cctFGLCyySt058v06w7eWgQuHJabnn&confirm=t" -o "$HOME/stardew/SMAPI.Toolkit.CoreInterfaces.dll"
+        ls -la "$HOME/stardew/"
+
+    - name: Clean
+      run: dotnet clean src/MedTalk.csproj --configuration Release
+
+    - name: Restore
+      run: dotnet restore src/MedTalk.csproj
+
+    - name: Build MedTalk
+      run: dotnet build src/MedTalk.csproj --configuration Release --no-restore
+
+    - name: Upload artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: MedTalk
+        path: src/bin/Release/net8.0/
