@@ -19,7 +19,8 @@ namespace MedTalk
                 {
                     _llmMap = new Dictionary<string, Type>(StringComparer.InvariantCultureIgnoreCase)
                     {
-                        {"Google", typeof(LlmGemini)}
+                        {"Google", typeof(LlmGemini)},
+                        {"Groq", typeof(LlmGroq)}
                     };
                 }
                 return _llmMap;
