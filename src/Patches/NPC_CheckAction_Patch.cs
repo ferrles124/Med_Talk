@@ -16,7 +16,12 @@ namespace MedTalk
             }
 
             DialogueBuilder.Instance.ClearContext();
-            TextInputManager.RequestTextInput($"What do you want to say to {__instance.displayName}?", __instance);
+            
+            // ÖNEMLİ: Konuşmacıyı ayarla
+            Game1.currentSpeaker = __instance;
+            
+            var prompt = $"What do you want to say to {__instance.displayName}?";
+            TextInputManager.RequestTextInput(prompt, __instance);
 
             __result = false;
             return false;
