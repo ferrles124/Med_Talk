@@ -78,11 +78,6 @@ namespace MedTalk
                     {
                         return (Dialogue)ctor.Invoke(new object[] { npc, text });
                     }
-                    
-                    if (parameters.Length == 1 && parameters[0].ParameterType == typeof(string))
-                    {
-                        return (Dialogue)ctor.Invoke(new object[] { text });
-                    }
                 }
                 
                 return null;
@@ -122,21 +117,13 @@ namespace MedTalk
             }
             finally
             {
-                if (_speakingNpc != null && !string.IsNullOrEmpty(dialogueText) && dialogueText != "...")
+                if (_speakingNpc != null && dialogueText != "..." && !string.IsNullOrEmpty(dialogueText))
                 {
                     var dialogue = CreateDialogue(dialogueText, _speakingNpc);
                     if (dialogue != null)
                     {
                         Game1.currentSpeaker = _speakingNpc;
                         _speakingNpc.CurrentDialogue.Push(dialogue);
-                        Game1.drawDialogue(_speakingNpc);
-                    }
-                    else
-                    {
-                        // Fallback: tek parametreli constructor dene
-                        Game1.currentSpeaker = _speakingNpc;
-                        var fallbackDialogue = new Dialogue(dialogueText);
-                        _speakingNpc.CurrentDialogue.Push(fallbackDialogue);
                         Game1.drawDialogue(_speakingNpc);
                     }
                 }
