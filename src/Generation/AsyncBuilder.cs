@@ -127,16 +127,15 @@ namespace MedTalk
                     var dialogue = CreateDialogue(dialogueText, _speakingNpc);
                     if (dialogue != null)
                     {
-                        // VALLEY TALK'TAN ALINAN KRİTİK SATIRLAR
                         Game1.currentSpeaker = _speakingNpc;
                         _speakingNpc.CurrentDialogue.Push(dialogue);
                         Game1.drawDialogue(_speakingNpc);
                     }
                     else
                     {
-                        // Fallback: direkt dialogue box göster
+                        // Fallback: CreateDialogue başarısız oldu, direkt dene
                         Game1.currentSpeaker = _speakingNpc;
-                        Game1.drawDialogue(new Dialogue(dialogueText, _speakingNpc));
+                        Game1.drawDialogue(new Dialogue(dialogueText));
                     }
                 }
                 Reset();
