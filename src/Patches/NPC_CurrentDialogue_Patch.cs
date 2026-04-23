@@ -1,6 +1,7 @@
 using HarmonyLib;
 using StardewValley;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace MedTalk
 {
@@ -20,6 +21,10 @@ namespace MedTalk
             if (firstLine.Text == "[[generate]]" || firstLine.Text.StartsWith("[[generate]]"))
             {
                 __result.Pop();
+                
+                // VALLEY TALK'TAN ALINAN KRİTİK SATIR:
+                Game1.currentSpeaker = __instance;
+                
                 AsyncBuilder.Instance.RequestNpcBasic(__instance, "default", "");
                 __result.Clear();
                 return;
