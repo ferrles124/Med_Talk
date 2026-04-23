@@ -133,9 +133,11 @@ namespace MedTalk
                     }
                     else
                     {
-                        // Fallback: CreateDialogue başarısız oldu, direkt dene
+                        // Fallback: tek parametreli constructor dene
                         Game1.currentSpeaker = _speakingNpc;
-                        Game1.drawDialogue(new Dialogue(dialogueText));
+                        var fallbackDialogue = new Dialogue(dialogueText);
+                        _speakingNpc.CurrentDialogue.Push(fallbackDialogue);
+                        Game1.drawDialogue(_speakingNpc);
                     }
                 }
                 Reset();
